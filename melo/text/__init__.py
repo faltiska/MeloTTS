@@ -20,7 +20,7 @@ def cleaned_text_to_sequence(cleaned_text, tones, language, symbol_to_id=None):
     return phones, tones, lang_ids
 
 
-def get_bert(norm_text, word2ph, language, device):
+def get_bert(norm_text, word2ph, language, device=None):
     from .chinese_bert import get_bert_feature as zh_bert
     from .english_bert import get_bert_feature as en_bert
     from .japanese_bert import get_bert_feature as jp_bert
