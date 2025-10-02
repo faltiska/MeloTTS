@@ -7,19 +7,22 @@ from setuptools.command.install import install
 cwd = os.path.dirname(os.path.abspath(__file__))
 
 with open('requirements.txt') as f:
-    reqs = f.read().splitlines()
+    reqs = [line.strip() for line in f.read().splitlines() 
+            if line.strip() and not line.startswith('--')]
 class PostInstallCommand(install):
     """Post-installation for installation mode."""
     def run(self):
         install.run(self)
-        os.system('python -m unidic download')
+        import nltk
+        nltk.download('averaged_perceptron_tagger_eng')
 
 
 class PostDevelopCommand(develop):
     """Post-installation for development mode."""
     def run(self):
         develop.run(self)
-        os.system('python -m unidic download')
+        import nltk
+        nltk.download('averaged_perceptron_tagger_eng')
 
 setup(
     name='melotts',
@@ -36,5 +39,9 @@ setup(
             "melo = melo.main:main",
             "melo-ui = melo.app:main",
         ],
+    },
+    cmdclass={
+        'develop': PostDevelopCommand,
+        'install': PostInstallCommand,
     },
 )

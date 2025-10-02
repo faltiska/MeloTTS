@@ -13,8 +13,13 @@ The repo is developed and tested on `Ubuntu 20.04` and `Python 3.9`.
 ```bash
 git clone https://github.com/myshell-ai/MeloTTS.git
 cd MeloTTS
-pip install -e .
+pip install uv
+uv venv
+# activate the venv with the command printed by UV
+uv pip install -r requirements.txt
 python -m unidic download
+uv pip install -e .
+python melo/init_downloads.py
 ```
 If you encountered issues in macOS install, try the [Docker Install](#docker-install)
 

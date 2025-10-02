@@ -1,15 +1,16 @@
 import os
 import random
+
 import torch
 import torch.utils.data
-from tqdm import tqdm
 from loguru import logger
+from tqdm import tqdm
+
 import commons
 from mel_processing import spectrogram_torch, mel_spectrogram_torch
+from text import cleaned_text_to_sequence, get_bert
 from utils import load_filepaths_and_text
 from utils import load_wav_to_torch_librosa as load_wav_to_torch
-from text import cleaned_text_to_sequence, get_bert
-import numpy as np
 
 """Multi speaker version"""
 
@@ -160,8 +161,7 @@ class TextAudioSpeakerLoader(torch.utils.data.Dataset):
         try:
             bert = torch.load(bert_path)
             assert bert.shape[-1] == len(phone)
-        except Exception as e:
-            print(e, wav_path, bert_path, bert.shape, len(phone))
+        except:
             bert = get_bert(text, word2ph, language_str)
             torch.save(bert, bert_path)
             assert bert.shape[-1] == len(phone), phone
@@ -177,9 +177,7 @@ class TextAudioSpeakerLoader(torch.utils.data.Dataset):
                 ja_bert = bert
                 bert = torch.zeros(1024, len(phone))
             else:
-                raise
-                bert = torch.zeros(1024, len(phone))
-                ja_bert = torch.zeros(768, len(phone))
+                raise ValueError(f"Language not supported: {language_str}")
         assert bert.shape[-1] == len(phone)
         phone = torch.LongTensor(phone)
         tone = torch.LongTensor(tone)

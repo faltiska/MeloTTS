@@ -1,0 +1,1 @@
+python ./melo/app.py --host localhost --port 8888

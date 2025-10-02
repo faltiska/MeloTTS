@@ -1,21 +1,18 @@
-import os
 import re
-import json
-import torch
-import librosa
-import soundfile
-import torchaudio
+import time
+
 import numpy as np
-import torch.nn as nn
-from tqdm import tqdm
+import soundfile
 import torch
+import torch.nn as nn
+from loguru import logger
+from tqdm import tqdm
 
 from . import utils
-from . import commons
+from .download_utils import load_or_download_config, load_or_download_model
 from .models import SynthesizerTrn
 from .split_utils import split_sentence
-from .mel_processing import spectrogram_torch, spectrogram_torch_conv
-from .download_utils import load_or_download_config, load_or_download_model
+
 
 class TTS(nn.Module):
     def __init__(self, 
@@ -31,7 +28,9 @@ class TTS(nn.Module):
             if torch.backends.mps.is_available(): device = 'mps'
         if 'cuda' in device:
             assert torch.cuda.is_available()
-
+            
+        logger.info(f"{language} model loaded on {device}")
+            
         # config_path = 
         hps = load_or_download_config(language, use_hf=use_hf, config_path=config_path)
 
@@ -80,9 +79,14 @@ class TTS(nn.Module):
             print(" > ===========================")
         return texts
 
-    def tts_to_file(self, text, speaker_id, output_path=None, sdp_ratio=0.2, noise_scale=0.6, noise_scale_w=0.8, speed=1.0, pbar=None, format=None, position=None, quiet=False,):
+    def tts_to_file(self, text, speaker_id, output_path=None, sdp_ratio=0.2, noise_scale=0.6, noise_scale_w=0.8, speed=1.0, pbar=None, 
+                    audio_format=None, position=None, quiet=False, split_into_sentences=False):
+        start_time = time.time()
         language = self.language
-        texts = self.split_sentences_into_pieces(text, language, quiet)
+        if split_into_sentences:    
+            texts = self.split_sentences_into_pieces(text, language, quiet)
+        else:
+            texts = [text]
         audio_list = []
         if pbar:
             tx = pbar(texts)
@@ -126,10 +130,14 @@ class TTS(nn.Module):
         torch.cuda.empty_cache()
         audio = self.audio_numpy_concat(audio_list, sr=self.hps.data.sampling_rate, speed=speed)
 
+        execution_time = time.time() - start_time
+        logger.info(f"Synthesis took {execution_time:.3f} seconds")
+        
         if output_path is None:
             return audio
         else:
-            if format:
-                soundfile.write(output_path, audio, self.hps.data.sampling_rate, format=format)
+            if audio_format:
+                soundfile.write(output_path, audio, self.hps.data.sampling_rate, format=audio_format)
             else:
                 soundfile.write(output_path, audio, self.hps.data.sampling_rate)
+            return None
