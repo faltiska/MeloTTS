@@ -28,4 +28,4 @@ tqdm
 tensorboard>=2.16.2
 loguru>=0.7.2
 mecab-python3>=1.0.9
-nltk==3.9.2
+eunjeon>=0.4.0
